@@ -35,6 +35,7 @@ class FedAGRU:
         self.param_dim = None
         self.num_clients = None
         self.initialized = False
+        self.previous_global_loss = None
 
     def _initialize_parameters(self, model_weights_list):
         """Initialize learnable parameter matrix W_m based on model dimensions"""
@@ -197,3 +198,25 @@ class FedAGRU:
             importance_vector = clipped_vector / np.sum(clipped_vector)
         
         return importance_vector
+
+    def update_from_global_evaluation(self, model_weights_list, importance_vector, global_loss):
+        """Update W_m based on global model performance (better learning signal)"""
+        if self.previous_global_loss is not None:
+            # Use performance delta: positive = model improved, negative = model got worse
+            performance_delta = self.previous_global_loss - global_loss
+            
+            print(f"{bcolors.OKCYAN}Updating W_m based on global performance delta: {performance_delta:.6f}{bcolors.ENDC}")
+            
+            num_clients = len(model_weights_list)
+            for client_idx in range(num_clients):
+                client_params = self._flatten_weights(model_weights_list[client_idx])
+                M_i = np.tanh(client_params)
+                
+                # Update based on global performance improvement and client importance
+                gradient = importance_vector[client_idx] * M_i * performance_delta
+                
+                # Update W_m column for this client
+                self.W_m[:, client_idx] += self.learning_rate * gradient
+        
+        # Store current global loss for next round
+        self.previous_global_loss = global_loss
