@@ -10,6 +10,8 @@ attack_to_class = {
     "CommandInjection": "Web-based",
     "XSS": "Web-based",
     "Uploading_Attack": "Web-based",
+    "XSS": "Web-based",
+    "XSS": "Web-based",
     "SqlInjection": "Web-based",
     "BenignTraffic": "BenignTraffic",
     "DDoS-ACK_Fragmentation": "DDoS",
